@@ -1,7 +1,6 @@
 import { app, BrowserWindow } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { existsSync } from 'node:fs'
 import { registerAppIpc } from './ipc/app.ipc'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -20,12 +19,6 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let mainWindow: BrowserWindow | null = null
 
 function createWindow() {
-    const preloadPath = path.join(__dirname, 'preload.cjs')
-
-    console.log('[main] __dirname:', __dirname)
-    console.log('[main] preloadPath:', preloadPath)
-    console.log('[main] preload exists:', existsSync(preloadPath))
-
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
