@@ -1,7 +1,8 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, nativeImage } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerAppIpc } from './ipc/app.ipc'
+import {existsSync} from "node:fs";
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -19,12 +20,14 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let mainWindow: BrowserWindow | null = null
 
 function createWindow() {
+    const iconPath = path.join(process.env.VITE_PUBLIC!, 'icons/icon.png')
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
         minWidth: 1000,
         minHeight: 700,
         title: 'Clinfy',
+        icon: iconPath,
         webPreferences: {
             preload: path.join(__dirname, 'preload.cjs'),
             contextIsolation: true,
