@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerAppIpc } from './ipc/app.ipc'
+import { registerAuthIpc } from './ipc/auth.ipc'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -35,7 +36,7 @@ function createWindow() {
         },
     })
 
-    //mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
 
 
     if (VITE_DEV_SERVER_URL) {
@@ -47,6 +48,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
     registerAppIpc()
+    registerAuthIpc()
     createWindow()
 })
 

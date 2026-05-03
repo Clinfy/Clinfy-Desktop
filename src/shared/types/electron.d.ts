@@ -1,3 +1,5 @@
+import type { AuthActionResult, AuthLoginResult, AuthSessionStatus, LoginCredentials } from './auth'
+
 export {}
 
 declare global {
@@ -8,6 +10,11 @@ declare global {
                     success: boolean
                     message: string
                 }>
+            }
+            auth: {
+                login: (credentials: LoginCredentials) => Promise<AuthLoginResult>
+                getSessionStatus: () => Promise<AuthSessionStatus>
+                logout: () => Promise<AuthActionResult>
             }
         }
     }
