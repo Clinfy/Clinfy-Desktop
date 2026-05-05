@@ -7,7 +7,7 @@ interface ThemeProviderProps {
   children: ReactNode
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
+export function ThemeProvider({ children }: Readonly<ThemeProviderProps>) {
   const theme: Theme = 'light'
   const resolvedTheme = 'light'
 
