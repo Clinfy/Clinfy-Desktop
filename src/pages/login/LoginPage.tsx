@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEventHandler } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
 
     if (isSubmitting) {
@@ -52,7 +52,12 @@ export function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted p-6">
       <section className="w-full max-w-md rounded-2xl border bg-card p-8 text-card-foreground shadow">
-        <div className="space-y-2 text-center">
+        <div className="space-y-3 text-center">
+          <img
+            src="/logo.webp"
+            alt="Clinfy"
+            className="mx-auto h-45 w-45 rounded-2xl object-contain"
+          />
           <p className="text-sm font-medium text-muted-foreground">Welcome to Clinfy</p>
           <h1 className="text-3xl font-bold">Sign in</h1>
           <p className="text-sm text-muted-foreground">
