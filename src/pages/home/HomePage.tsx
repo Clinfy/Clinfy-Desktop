@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { clearSessionContext } from '@/shared/session/sessionContextStorage'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -26,11 +27,12 @@ export function HomePage() {
       return
     }
 
+    clearSessionContext()
     navigate('/login', { replace: true })
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted p-6">
+    < main className="flex min-h-screen items-center justify-center bg-muted p-6">
       <section className="w-full max-w-md rounded-2xl border bg-card p-8 text-card-foreground shadow">
         <p className="text-sm font-medium text-muted-foreground">Authenticated workspace</p>
         <h1 className="mt-2 text-3xl font-bold">Clinfy Desktop</h1>

@@ -3,6 +3,7 @@ import type { SubmitEventHandler } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { saveSessionContext } from '@/shared/session/sessionContextStorage'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -34,18 +35,28 @@ export function LoginPage() {
       password,
     })
 
-    setIsSubmitting(false)
-
     if (!result.success) {
       setMessage(result.message)
+      setIsSubmitting(false)
       return
     }
 
     if (!result.cookies.access || !result.cookies.refresh) {
       setMessage('Login response did not include the required auth cookies.')
+      setIsSubmitting(false)
       return
     }
 
+    const sessionContextResult = await window.clinfy.auth.getSessionContext()
+
+    if (!sessionContextResult.success) {
+      setMessage(sessionContextResult.message)
+      setIsSubmitting(false)
+      return
+    }
+
+    saveSessionContext(sessionContextResult.context)
+    setIsSubmitting(false)
     navigate('/', { replace: true })
   }
 

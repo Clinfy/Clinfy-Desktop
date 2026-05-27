@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ThemeProvider } from '@/shared/theme/ThemeProvider'
 import { HomePage } from '@/pages/home/HomePage'
 import { LoginPage } from '@/pages/login/LoginPage'
+import { clearSessionContext, saveSessionContext } from '@/shared/session/sessionContextStorage'
 
 function App() {
   const [initialRoute, setInitialRoute] = useState<string | null>(null)
@@ -17,11 +18,31 @@ function App() {
         return
       }
 
-      setInitialRoute(status.hasRefreshToken ? '/' : '/login')
+      if (!status.hasRefreshToken) {
+        clearSessionContext()
+        setInitialRoute('/login')
+        return
+      }
+
+      const sessionContextResult = await window.clinfy.auth.getSessionContext()
+
+      if (!isMounted) {
+        return
+      }
+
+      if (!sessionContextResult.success) {
+        clearSessionContext()
+        setInitialRoute('/login')
+        return
+      }
+
+      saveSessionContext(sessionContextResult.context)
+      setInitialRoute('/')
     }
 
     resolveInitialRoute().catch(() => {
       if (isMounted) {
+        clearSessionContext()
         setInitialRoute('/login')
       }
     })

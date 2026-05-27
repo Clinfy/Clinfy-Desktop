@@ -17,6 +17,9 @@ contextBridge.exposeInMainWorld('clinfy', {
         getSessionStatus: () => {
             return ipcRenderer.invoke('auth:session-status')
         },
+        getSessionContext: () => {
+            return ipcRenderer.invoke('auth:session-context')
+        },
         logout: () => {
             return ipcRenderer.invoke('auth:logout')
         },

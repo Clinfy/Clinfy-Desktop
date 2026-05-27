@@ -22,6 +22,23 @@ export type AuthSessionStatus = {
   hasRefreshToken: boolean
 }
 
+export type SessionContext = {
+  user_id: string
+  person_id: string
+  email: string
+  endpoint_keys: string[]
+}
+
+export type SessionContextResult =
+  | {
+      success: true
+      context: SessionContext
+    }
+  | {
+      success: false
+      message: string
+    }
+
 export type AuthActionResult =
   | {
       success: true

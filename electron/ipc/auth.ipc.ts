@@ -5,6 +5,7 @@ import type {
     AuthActionResult,
     AuthCookies,
     AuthLoginResult,
+    SessionContextResult,
     AuthSessionStatus,
     LoginCredentials,
 } from '../../src/shared/types/auth'
@@ -13,6 +14,7 @@ const ACCESS_COOKIE_NAME = 'auth_token'
 const REFRESH_COOKIE_NAME = 'refresh_token'
 const LOGIN_ERROR_FALLBACK = 'Unable to log in. Please try again.'
 const LOGOUT_ERROR_FALLBACK = 'Unable to log out. Please try again.'
+const SESSION_CONTEXT_ERROR_FALLBACK = 'Unable to load your session context. Please sign in again.'
 const MISSING_COOKIE_MESSAGE = 'Login response did not include the required auth cookies.'
 
 type AuthErrorResponse = {
@@ -48,6 +50,10 @@ export function registerAuthIpc() {
         return {
             hasRefreshToken: refreshCookies.length > 0,
         }
+    })
+
+    ipcMain.handle('auth:session-context', async (): Promise<SessionContextResult> => {
+        return getSessionContext()
     })
 
     ipcMain.handle('auth:logout', async (): Promise<AuthActionResult> => {
@@ -119,6 +125,48 @@ async function logout(): Promise<AuthActionResult> {
     }
 }
 
+async function getSessionContext(): Promise<SessionContextResult> {
+    if (!isUrlConfigured(urls.auth.sessionContext)) {
+        return {
+            success: false,
+            message: 'Session context URL is not configured.',
+        }
+    }
+
+    try {
+        const headers = await getStoredAuthCookieHeaders()
+
+        if (!headers.Cookie) {
+            return {
+                success: false,
+                message: SESSION_CONTEXT_ERROR_FALLBACK,
+            }
+        }
+
+        const response = await fetch(urls.auth.sessionContext, {
+            method: 'GET',
+            headers,
+        })
+
+        if (!response.ok) {
+            return {
+                success: false,
+                message: await readErrorMessage(response, SESSION_CONTEXT_ERROR_FALLBACK),
+            }
+        }
+
+        return {
+            success: true,
+            context: await response.json(),
+        }
+    } catch {
+        return {
+            success: false,
+            message: SESSION_CONTEXT_ERROR_FALLBACK,
+        }
+    }
+}
+
 async function postLogout() {
     if (!isUrlConfigured(urls.auth.logout)) {
         return
@@ -147,12 +195,12 @@ function isUrlConfigured(url: string) {
     }
 }
 
-async function readErrorMessage(response: Response) {
+async function readErrorMessage(response: Response, fallback = LOGIN_ERROR_FALLBACK) {
     try {
         const error = (await response.json()) as AuthErrorResponse
-        return error.message?.trim() || LOGIN_ERROR_FALLBACK
+        return error.message?.trim() || fallback
     } catch {
-        return LOGIN_ERROR_FALLBACK
+        return fallback
     }
 }
 
