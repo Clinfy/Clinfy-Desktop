@@ -11,6 +11,7 @@ export default tseslint.config(
         'dist-electron',
         'release',
         'out',
+        'coverage',
         'node_modules',
       ],
     },
