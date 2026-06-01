@@ -1,15 +1,21 @@
 import { useState } from 'react'
 import type { SubmitEventHandler } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { saveSessionContext } from '@/shared/session/sessionContextStorage'
 
+type LoginLocationState = {
+  message?: string
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const routeMessage = (location.state as LoginLocationState | null)?.message
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(routeMessage ?? null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
 

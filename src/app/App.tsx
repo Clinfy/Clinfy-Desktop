@@ -5,8 +5,19 @@ import { HomePage } from '@/pages/home/HomePage'
 import { LoginPage } from '@/pages/login/LoginPage'
 import { clearSessionContext, saveSessionContext } from '@/shared/session/sessionContextStorage'
 
+const SESSION_EXPIRED_LOGIN_MESSAGE = 'Your session expired. Please sign in again.'
+
+type InitialRoute =
+  | string
+  | {
+      pathname: string
+      state: {
+        message: string
+      }
+    }
+
 function App() {
-  const [initialRoute, setInitialRoute] = useState<string | null>(null)
+  const [initialRoute, setInitialRoute] = useState<InitialRoute | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -32,7 +43,16 @@ function App() {
 
       if (!sessionContextResult.success) {
         clearSessionContext()
-        setInitialRoute('/login')
+        setInitialRoute(
+          sessionContextResult.reason === 'session-expired'
+            ? {
+                pathname: '/login',
+                state: {
+                  message: sessionContextResult.message || SESSION_EXPIRED_LOGIN_MESSAGE,
+                },
+              }
+            : '/login',
+        )
         return
       }
 

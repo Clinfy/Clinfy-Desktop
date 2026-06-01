@@ -37,6 +37,7 @@ export type SessionContextResult =
   | {
       success: false
       message: string
+      reason?: 'session-expired'
     }
 
 export type AuthActionResult =

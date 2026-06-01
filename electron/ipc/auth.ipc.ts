@@ -12,9 +12,11 @@ import type {
 
 const ACCESS_COOKIE_NAME = 'auth_token'
 const REFRESH_COOKIE_NAME = 'refresh_token'
+const AUTH_COOKIE_EXPIRED_INVALID = 'AUTH_COOKIE_EXPIRED_INVALID'
 const LOGIN_ERROR_FALLBACK = 'Unable to log in. Please try again.'
 const LOGOUT_ERROR_FALLBACK = 'Unable to log out. Please try again.'
 const SESSION_CONTEXT_ERROR_FALLBACK = 'Unable to load your session context. Please sign in again.'
+const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please sign in again.'
 const MISSING_COOKIE_MESSAGE = 'Login response did not include the required auth cookies.'
 
 type AuthErrorResponse = {
@@ -25,6 +27,11 @@ type AuthErrorResponse = {
     message?: string
 }
 
+type ParsedAuthError = {
+    message: string
+    shouldRefreshAuth: boolean
+}
+
 type ParsedCookie = {
     name: string
     value: string
@@ -33,6 +40,10 @@ type ParsedCookie = {
     secure?: boolean
     httpOnly?: boolean
     expirationDate?: number
+}
+
+type StoredAuthCookieOptions = {
+    refreshOnly?: boolean
 }
 
 type HeadersWithSetCookie = Headers & {
@@ -134,36 +145,105 @@ async function getSessionContext(): Promise<SessionContextResult> {
     }
 
     try {
-        const headers = await getStoredAuthCookieHeaders()
+        const response = await fetchSessionContext()
 
-        if (!headers.Cookie) {
+        if (response.ok) {
             return {
-                success: false,
-                message: SESSION_CONTEXT_ERROR_FALLBACK,
+                success: true,
+                context: await response.json(),
             }
         }
 
-        const response = await fetch(urls.auth.sessionContext, {
-            method: 'GET',
-            headers,
-        })
+        const error = await readAuthError(response, SESSION_CONTEXT_ERROR_FALLBACK)
 
-        if (!response.ok) {
+        if (!error.shouldRefreshAuth) {
             return {
                 success: false,
-                message: await readErrorMessage(response, SESSION_CONTEXT_ERROR_FALLBACK),
+                message: error.message,
             }
+        }
+
+        const refreshed = await refreshAuthCookies()
+
+        if (!refreshed) {
+            return expireSession()
+        }
+
+        const retryResponse = await fetchSessionContext()
+
+        if (retryResponse.ok) {
+            return {
+                success: true,
+                context: await retryResponse.json(),
+            }
+        }
+
+        const retryError = await readAuthError(retryResponse, SESSION_CONTEXT_ERROR_FALLBACK)
+
+        if (retryError.shouldRefreshAuth) {
+            return expireSession()
         }
 
         return {
-            success: true,
-            context: await response.json(),
+            success: false,
+            message: retryError.message,
         }
     } catch {
         return {
             success: false,
             message: SESSION_CONTEXT_ERROR_FALLBACK,
         }
+    }
+}
+
+async function fetchSessionContext() {
+    const headers = await getStoredAuthCookieHeaders()
+
+    if (!headers.Cookie) {
+        throw new Error('Missing auth cookies')
+    }
+
+    return fetch(urls.auth.sessionContext, {
+        method: 'GET',
+        headers,
+    })
+}
+
+async function refreshAuthCookies() {
+    if (!isUrlConfigured(urls.auth.refreshToken)) {
+        return false
+    }
+
+    const headers = await getStoredAuthCookieHeaders({ refreshOnly: true })
+
+    if (!headers.Cookie) {
+        return false
+    }
+
+    try {
+        const response = await fetch(urls.auth.refreshToken, {
+            method: 'GET',
+            headers,
+        })
+
+        if (!response.ok || !extractAuthCookies(response.headers)) {
+            return false
+        }
+
+        await persistAuthCookies(response.headers)
+        return true
+    } catch {
+        return false
+    }
+}
+
+async function expireSession(): Promise<SessionContextResult> {
+    await clearAuthCookies()
+
+    return {
+        success: false,
+        message: SESSION_EXPIRED_MESSAGE,
+        reason: 'session-expired',
     }
 }
 
@@ -196,11 +276,23 @@ function isUrlConfigured(url: string) {
 }
 
 async function readErrorMessage(response: Response, fallback = LOGIN_ERROR_FALLBACK) {
+    const error = await readAuthError(response, fallback)
+    return error.message
+}
+
+async function readAuthError(response: Response, fallback: string): Promise<ParsedAuthError> {
     try {
         const error = (await response.json()) as AuthErrorResponse
-        return error.message?.trim() || fallback
+
+        return {
+            message: error.message?.trim() || fallback,
+            shouldRefreshAuth: response.status === 401 && error.errorCode === AUTH_COOKIE_EXPIRED_INVALID,
+        }
     } catch {
-        return fallback
+        return {
+            message: fallback,
+            shouldRefreshAuth: false,
+        }
     }
 }
 
@@ -225,11 +317,10 @@ async function persistAuthCookies(headers: Headers) {
     await Promise.all(parsedCookies.map((cookie) => session.defaultSession.cookies.set(toElectronCookie(cookie))))
 }
 
-async function getStoredAuthCookieHeaders(): Promise<Record<string, string>> {
+async function getStoredAuthCookieHeaders(options: StoredAuthCookieOptions = {}): Promise<Record<string, string>> {
     const cookies = await session.defaultSession.cookies.get({})
-    const authCookies = cookies.filter((cookie) => {
-        return cookie.name === ACCESS_COOKIE_NAME || cookie.name === REFRESH_COOKIE_NAME
-    })
+    const allowedNames = options.refreshOnly ? [REFRESH_COOKIE_NAME] : [ACCESS_COOKIE_NAME, REFRESH_COOKIE_NAME]
+    const authCookies = cookies.filter((cookie) => allowedNames.includes(cookie.name))
 
     if (authCookies.length === 0) {
         return {}
