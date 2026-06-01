@@ -1,0 +1,73 @@
+schema: spec-driven
+project: clinfy-desktop
+initialized: 2026-05-28
+persistence: openspec
+strict_tdd: false
+
+context: |
+  Tech stack: Electron 41, React 19, TypeScript 6, Vite 8, Tailwind CSS 4, shadcn/ui.
+  Architecture: Electron main/preload plus React renderer; IPC exposed through contextBridge at window.clinfy.*.
+  Security: contextIsolation enabled and nodeIntegration disabled; follow existing electron/ipc patterns.
+  Build: vite-plugin-electron and electron-builder; npm run build runs tsc -b then vite build.
+  Style: English-only generated responses/code/docs/comments; new UI components in src/components/ui/; shared types in src/shared/types/.
+  Testing: no test runner configured; lint and build/typecheck are available.
+
+testing:
+  strict_tdd: false
+  detected: 2026-05-28
+  runner:
+    available: false
+    framework: null
+    command: null
+  layers:
+    unit:
+      available: false
+      tool: null
+    integration:
+      available: false
+      tool: null
+    e2e:
+      available: false
+      tool: null
+  coverage:
+    available: false
+    command: null
+  quality:
+    linter:
+      available: true
+      command: npm run lint
+    type_checker:
+      available: true
+      command: npx tsc -b
+    formatter:
+      available: false
+      command: null
+    build:
+      available: true
+      command: npm run build
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes.
+    - Respect project CLAUDE.md: non-trivial changes must use SDD.
+  specs:
+    - Use Given/When/Then for scenarios.
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY).
+  design:
+    - Document Electron main/preload/renderer boundaries for IPC changes.
+    - Include security implications when touching BrowserWindow, preload, cookies, or IPC.
+  tasks:
+    - Group by phase and keep tasks completable in one session.
+    - Do not add test-file tasks until a test runner is installed.
+  apply:
+    tdd: false
+    test_command: ""
+    instructions:
+      - Follow existing code patterns and CLAUDE.md conventions.
+  verify:
+    test_command: ""
+    build_command: npm run build
+    lint_command: npm run lint
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas.
