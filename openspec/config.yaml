@@ -1,28 +1,37 @@
 schema: spec-driven
 project: clinfy-desktop
 initialized: 2026-05-28
-persistence: openspec
+last_initialized: 2026-06-01
+persistence: hybrid
 strict_tdd: false
 
 context: |
-  Tech stack: Electron 41, React 19, TypeScript 6, Vite 8, Tailwind CSS 4, shadcn/ui.
-  Architecture: Electron main/preload plus React renderer; IPC exposed through contextBridge at window.clinfy.*.
-  Security: contextIsolation enabled and nodeIntegration disabled; follow existing electron/ipc patterns.
-  Build: vite-plugin-electron and electron-builder; npm run build runs tsc -b then vite build.
-  Style: English-only generated responses/code/docs/comments; new UI components in src/components/ui/; shared types in src/shared/types/.
-  Testing: Vitest unit/component test runner with jsdom and V8 coverage; lint and build/typecheck are available.
+  Tech stack: Electron 41, React 19, TypeScript 6, Vite 8, Tailwind CSS 4, shadcn/ui, Radix UI primitives, React Router 7, and npm/package-lock.
+  Architecture: Electron main/preload plus React renderer. Main-process IPC handlers live under electron/ipc/; preload exposes a typed window.clinfy API through contextBridge; renderer routes are memory-router based under src/app and src/pages.
+  Security: BrowserWindow uses contextIsolation enabled and nodeIntegration disabled. IPC, preload, cookies, BrowserWindow, and auth/session changes require explicit boundary and security review.
+  Build: vite-plugin-electron builds electron/main.ts and electron/preload.ts; npm run build runs TypeScript project build then Vite; electron-builder packages release artifacts through npm run dist* scripts.
+  Styling/UI: Tailwind CSS 4 via @tailwindcss/vite; shadcn configuration in components.json; UI primitives live in src/components/ui; cn() from src/lib/utils.ts handles class merging.
+  Testing: Vitest unit/component runner is configured with jsdom, @testing-library/jest-dom setup, src/**/*.{test,spec}.{ts,tsx} includes, and V8 lcov/text coverage.
+  Quality: ESLint flat config covers TypeScript/React hooks/React Refresh; TypeScript uses project references with strict unused/fallthrough checks; no formatter script is configured.
+  Conventions: Generated code, comments, UI copy, docs, and commit messages are English-only. Non-trivial multi-file or architectural changes must use SDD. Git operations are developer-owned per CLAUDE.md.
+  Current caveat: CLAUDE.md still says no test runner is configured, but package.json and vitest.config.ts show Vitest is now configured; prefer detected tooling over that stale line.
 
 testing:
   strict_tdd: false
-  detected: 2026-05-28
+  detected: 2026-06-01
   runner:
     available: true
     framework: Vitest
     command: npm run test
+    watch_command: npm run test:watch
   layers:
     unit:
       available: true
       tool: Vitest
+      include: src/**/*.{test,spec}.{ts,tsx}
+    component:
+      available: true
+      tool: Vitest + Testing Library + jsdom
     integration:
       available: false
       tool: null
@@ -32,6 +41,10 @@ testing:
   coverage:
     available: true
     command: npm run test:coverage
+    provider: v8
+    reporters:
+      - text
+      - lcov
   quality:
     linter:
       available: true
@@ -55,15 +68,17 @@ rules:
     - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY).
   design:
     - Document Electron main/preload/renderer boundaries for IPC changes.
-    - Include security implications when touching BrowserWindow, preload, cookies, or IPC.
+    - Include security implications when touching BrowserWindow, preload, cookies, auth/session storage, or IPC.
   tasks:
     - Group by phase and keep tasks completable in one session.
-    - Do not add test-file tasks until a test runner is installed.
+    - Include tests for new behavior when practical because Vitest is configured.
   apply:
     tdd: false
     test_command: npm run test
     instructions:
       - Follow existing code patterns and CLAUDE.md conventions.
+      - Keep generated artifacts in English.
+      - Do not run git commands; version control is developer-owned.
   verify:
     test_command: npm run test
     build_command: npm run build
