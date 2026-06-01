@@ -10,19 +10,19 @@ context: |
   Security: contextIsolation enabled and nodeIntegration disabled; follow existing electron/ipc patterns.
   Build: vite-plugin-electron and electron-builder; npm run build runs tsc -b then vite build.
   Style: English-only generated responses/code/docs/comments; new UI components in src/components/ui/; shared types in src/shared/types/.
-  Testing: no test runner configured; lint and build/typecheck are available.
+  Testing: Vitest unit/component test runner with jsdom and V8 coverage; lint and build/typecheck are available.
 
 testing:
   strict_tdd: false
   detected: 2026-05-28
   runner:
-    available: false
-    framework: null
-    command: null
+    available: true
+    framework: Vitest
+    command: npm run test
   layers:
     unit:
-      available: false
-      tool: null
+      available: true
+      tool: Vitest
     integration:
       available: false
       tool: null
@@ -30,8 +30,8 @@ testing:
       available: false
       tool: null
   coverage:
-    available: false
-    command: null
+    available: true
+    command: npm run test:coverage
   quality:
     linter:
       available: true
@@ -61,11 +61,11 @@ rules:
     - Do not add test-file tasks until a test runner is installed.
   apply:
     tdd: false
-    test_command: ""
+    test_command: npm run test
     instructions:
       - Follow existing code patterns and CLAUDE.md conventions.
   verify:
-    test_command: ""
+    test_command: npm run test
     build_command: npm run build
     lint_command: npm run lint
     coverage_threshold: 0

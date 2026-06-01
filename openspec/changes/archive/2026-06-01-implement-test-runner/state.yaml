@@ -1,0 +1,12 @@
+change: implement-test-runner
+phase: archived
+artifact_store: openspec
+artifacts:
+  exploration: true
+  proposal: true
+  specs: true
+  design: true
+  tasks: true
+  verify: true
+  archive: true
+last_updated: 2026-06-01
