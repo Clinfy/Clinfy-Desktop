@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Skeleton } from '@/components/ui/skeleton'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { ThemeProvider } from '@/shared/theme/ThemeProvider'
 import { HomePage } from '@/pages/home/HomePage'
 import { LoginPage } from '@/pages/login/LoginPage'
@@ -74,18 +76,24 @@ function App() {
 
   return (
     <ThemeProvider>
-      {initialRoute ? (
-        <MemoryRouter initialEntries={[initialRoute]}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-          </Routes>
-        </MemoryRouter>
-      ) : (
-        <main className="flex min-h-screen items-center justify-center bg-muted p-6">
-          <p className="text-sm text-muted-foreground">Loading Clinfy...</p>
-        </main>
-      )}
+      <TooltipProvider>
+        {initialRoute ? (
+          <MemoryRouter initialEntries={[initialRoute]}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+            </Routes>
+          </MemoryRouter>
+        ) : (
+          <main className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_var(--primary)_0,_transparent_34%),linear-gradient(135deg,_var(--background),_var(--muted))] p-6">
+            <section className="w-full max-w-sm rounded-2xl border bg-card/90 p-6 shadow-xl backdrop-blur">
+              <Skeleton className="mx-auto size-16 rounded-2xl" />
+              <Skeleton className="mx-auto mt-6 h-5 w-40" />
+              <Skeleton className="mx-auto mt-3 h-4 w-56" />
+            </section>
+          </main>
+        )}
+      </TooltipProvider>
     </ThemeProvider>
   )
 }
