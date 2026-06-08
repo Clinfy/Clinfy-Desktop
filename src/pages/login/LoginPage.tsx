@@ -71,7 +71,7 @@ export function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[linear-gradient(135deg,_var(--background)_0%,_var(--muted)_48%,_oklch(0.93_0.04_220)_100%)] p-4">
+    <main className="flex min-h-screen items-center justify-center bg-[linear-gradient(135deg,var(--background)_0%,var(--muted)_48%,oklch(0.93_0.04_220)_100%)] p-4">
       <section className="flex w-full justify-center">
         <Card className="w-full max-w-md border-white/60 bg-card/90 p-2 shadow-2xl shadow-primary/10 backdrop-blur">
           <CardContent className="p-6 sm:p-8">
