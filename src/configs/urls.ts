@@ -6,5 +6,7 @@ export const urls = {
         logout: `${AUTH_URL}/users/logout`,
         refreshToken: `${AUTH_URL}/users/refresh-token`,
         sessionContext: `${AUTH_URL}/users/me/session-context`,
+        forgotPassword: `${AUTH_URL}/users/forgot-password`,
+        resetPassword: `${AUTH_URL}/users/reset-password`,
     }
 }
