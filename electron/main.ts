@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerAppIpc } from './ipc/app.ipc'
@@ -18,6 +18,8 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
     : RENDERER_DIST
 
 let mainWindow: BrowserWindow | null = null
+
+Menu.setApplicationMenu(null)
 
 function createWindow() {
     const iconPath = path.join(process.env.VITE_PUBLIC!, 'icons/icon.png')
