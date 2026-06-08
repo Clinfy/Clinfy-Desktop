@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { SubmitEventHandler } from 'react'
-import { AlertCircle, CheckCircle2, Eye, EyeOff, LockKeyhole, Mail, Sparkles } from 'lucide-react'
+import { AlertCircle, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -71,54 +71,12 @@ export function LoginPage() {
   }
 
   return (
-    <main className="relative grid min-h-screen overflow-hidden bg-[linear-gradient(135deg,_var(--background)_0%,_var(--muted)_48%,_oklch(0.93_0.04_220)_100%)] p-4 lg:grid-cols-[1.05fr_0.95fr] lg:p-0">
-      <section className="relative hidden min-h-screen flex-col justify-between overflow-hidden p-10 text-primary-foreground lg:flex">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,_oklch(0.76_0.18_210)_0,_transparent_34%),linear-gradient(145deg,_oklch(0.36_0.14_235),_oklch(0.22_0.09_250))]" />
-        <div className="absolute -right-24 top-24 size-72 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute bottom-10 left-10 size-48 rounded-full bg-cyan-300/20 blur-3xl" />
-
-        <div className="relative flex items-center gap-3">
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
-            <Sparkles aria-hidden="true" className="size-5" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-white/70">Clinfy Desktop</p>
-            <p className="text-lg font-semibold">Clinical workflows, calmer.</p>
-          </div>
-        </div>
-
-        <div className="relative max-w-xl space-y-6">
-          <p className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-sm text-white/75 backdrop-blur">
-            Secure access for your workspace
-          </p>
-          <h1 className="text-5xl font-semibold tracking-tight text-balance">
-            A cleaner start for focused care operations.
-          </h1>
-          <p className="max-w-lg text-lg leading-8 text-white/72">
-            Access only the modules enabled for your session, with a desktop experience that feels
-            intentional instead of provisional.
-          </p>
-        </div>
-
-        <div className="relative grid max-w-xl grid-cols-2 gap-3">
-          {['Session-aware menu', 'Permission-based access'].map((item) => (
-            <div key={item} className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
-              <CheckCircle2 aria-hidden="true" className="size-5 text-cyan-200" />
-              <p className="mt-3 text-sm font-medium text-white/85">{item}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="flex min-h-[calc(100vh-2rem)] items-center justify-center lg:min-h-screen">
+    <main className="flex min-h-screen items-center justify-center bg-[linear-gradient(135deg,_var(--background)_0%,_var(--muted)_48%,_oklch(0.93_0.04_220)_100%)] p-4">
+      <section className="flex w-full justify-center">
         <Card className="w-full max-w-md border-white/60 bg-card/90 p-2 shadow-2xl shadow-primary/10 backdrop-blur">
           <CardContent className="p-6 sm:p-8">
             <div className="space-y-3 text-center">
-              <img
-                src="/logo.webp"
-                alt="Clinfy"
-                className="mx-auto size-28 rounded-3xl object-contain shadow-sm"
-              />
+              <img src="/logo.webp" alt="Clinfy" className="mx-auto size-28 object-contain" />
               <div>
                 <p className="text-sm font-medium text-primary">Welcome back</p>
                 <h2 className="mt-2 text-3xl font-semibold tracking-tight">Sign in</h2>
@@ -198,6 +156,16 @@ export function LoginPage() {
               <Button type="submit" size="lg" className="h-11 w-full" disabled={isSubmitting}>
                 {isSubmitting ? 'Signing in...' : 'Sign in'}
               </Button>
+
+              <div className="text-center">
+                <a
+                  href="#"
+                  onClick={(event) => event.preventDefault()}
+                  className="text-sm text-primary underline-offset-4 hover:underline"
+                >
+                  forgot your password?
+                </a>
+              </div>
             </form>
           </CardContent>
         </Card>
