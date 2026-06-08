@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { SubmitEventHandler } from 'react'
-import { AlertCircle, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
+import { AlertCircle, CircleCheck, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -11,15 +11,21 @@ import { saveSessionContext } from '@/shared/session/sessionContextStorage'
 
 type LoginLocationState = {
   message?: string
+  messageVariant?: 'success' | 'destructive'
 }
 
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const routeMessage = (location.state as LoginLocationState | null)?.message
+  const routeState = location.state as LoginLocationState | null
+  const routeMessage = routeState?.message
+  const routeMessageVariant = routeState?.messageVariant ?? 'destructive'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState<string | null>(routeMessage ?? null)
+  const [messageVariant, setMessageVariant] = useState<'success' | 'destructive'>(
+    routeMessageVariant,
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
 
@@ -34,6 +40,7 @@ export function LoginPage() {
 
     if (!trimmedEmail || !password) {
       setMessage('Enter your email and password to continue.')
+      setMessageVariant('destructive')
       return
     }
 
@@ -47,12 +54,14 @@ export function LoginPage() {
 
     if (!result.success) {
       setMessage(result.message)
+      setMessageVariant('destructive')
       setIsSubmitting(false)
       return
     }
 
     if (!result.cookies.access || !result.cookies.refresh) {
       setMessage('Login response did not include the required auth cookies.')
+      setMessageVariant('destructive')
       setIsSubmitting(false)
       return
     }
@@ -61,6 +70,7 @@ export function LoginPage() {
 
     if (!sessionContextResult.success) {
       setMessage(sessionContextResult.message)
+      setMessageVariant('destructive')
       setIsSubmitting(false)
       return
     }
@@ -147,8 +157,19 @@ export function LoginPage() {
               </div>
 
               {message && (
-                <Alert variant="destructive" className="bg-destructive/10">
-                  <AlertCircle aria-hidden="true" className="size-4" />
+                <Alert
+                  variant={messageVariant === 'destructive' ? 'destructive' : 'default'}
+                  className={
+                    messageVariant === 'success'
+                      ? 'border-primary/30 bg-primary/10'
+                      : 'bg-destructive/10'
+                  }
+                >
+                  {messageVariant === 'success' ? (
+                    <CircleCheck aria-hidden="true" className="size-4 text-primary" />
+                  ) : (
+                    <AlertCircle aria-hidden="true" className="size-4" />
+                  )}
                   <AlertDescription>{message}</AlertDescription>
                 </Alert>
               )}
@@ -158,13 +179,14 @@ export function LoginPage() {
               </Button>
 
               <div className="text-center">
-                <a
-                  href="#"
-                  onClick={(event) => event.preventDefault()}
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  disabled={isSubmitting}
                   className="text-sm text-primary underline-offset-4 hover:underline"
                 >
-                  forgot your password?
-                </a>
+                  Forgot your password?
+                </button>
               </div>
             </form>
           </CardContent>
