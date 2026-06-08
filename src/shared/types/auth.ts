@@ -3,6 +3,26 @@ export type LoginCredentials = {
   password: string
 }
 
+export type ForgotPasswordRequest = {
+  email: string
+}
+
+export type ResetPasswordRequest = {
+  email: string
+  token: string
+  password: string
+}
+
+export type PasswordRecoveryResult =
+  | {
+      success: true
+      message: string
+    }
+  | {
+      success: false
+      message: string
+    }
+
 export type AuthCookies = {
   access: string
   refresh: string

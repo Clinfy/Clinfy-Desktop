@@ -3,8 +3,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ThemeProvider } from '@/shared/theme/ThemeProvider'
+import { ForgotPasswordPage } from '@/pages/forgot-password/ForgotPasswordPage'
 import { HomePage } from '@/pages/home/HomePage'
 import { LoginPage } from '@/pages/login/LoginPage'
+import { ResetPasswordPage } from '@/pages/reset-password/ResetPasswordPage'
 import { clearSessionContext, saveSessionContext } from '@/shared/session/sessionContextStorage'
 
 const SESSION_EXPIRED_LOGIN_MESSAGE = 'Your session expired. Please sign in again.'
@@ -82,6 +84,8 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
             </Routes>
           </MemoryRouter>
         ) : (

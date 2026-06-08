@@ -7,13 +7,20 @@ import type {
     AuthLoginResult,
     SessionContextResult,
     AuthSessionStatus,
+    ForgotPasswordRequest,
     LoginCredentials,
+    PasswordRecoveryResult,
+    ResetPasswordRequest,
 } from '../../src/shared/types/auth'
 
 const ACCESS_COOKIE_NAME = 'auth_token'
 const REFRESH_COOKIE_NAME = 'refresh_token'
 const AUTH_COOKIE_EXPIRED_INVALID = 'AUTH_COOKIE_EXPIRED_INVALID'
 const LOGIN_ERROR_FALLBACK = 'Unable to log in. Please try again.'
+const FORGOT_PASSWORD_SUCCESS_FALLBACK = 'Password reset instructions sent.'
+const FORGOT_PASSWORD_ERROR_FALLBACK = 'Unable to request a password reset. Please try again.'
+const RESET_PASSWORD_SUCCESS_FALLBACK = 'Your password has been reset.'
+const RESET_PASSWORD_ERROR_FALLBACK = 'Unable to reset your password. Please try again.'
 const LOGOUT_ERROR_FALLBACK = 'Unable to log out. Please try again.'
 const SESSION_CONTEXT_ERROR_FALLBACK = 'Unable to load your session context. Please sign in again.'
 const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please sign in again.'
@@ -55,6 +62,42 @@ export function registerAuthIpc() {
         return login(credentials)
     })
 
+    ipcMain.handle(
+        'auth:forgot-password',
+        async (_event, request: unknown): Promise<PasswordRecoveryResult> => {
+            const body = toForgotPasswordRequest(request)
+
+            if (!body) {
+                return recoveryFailure(FORGOT_PASSWORD_ERROR_FALLBACK)
+            }
+
+            return postPasswordRecovery(
+                urls.auth.forgotPassword,
+                body,
+                FORGOT_PASSWORD_SUCCESS_FALLBACK,
+                FORGOT_PASSWORD_ERROR_FALLBACK,
+            )
+        },
+    )
+
+    ipcMain.handle(
+        'auth:reset-password',
+        async (_event, request: unknown): Promise<PasswordRecoveryResult> => {
+            const body = toResetPasswordRequest(request)
+
+            if (!body) {
+                return recoveryFailure(RESET_PASSWORD_ERROR_FALLBACK)
+            }
+
+            return postPasswordRecovery(
+                urls.auth.resetPassword,
+                body,
+                RESET_PASSWORD_SUCCESS_FALLBACK,
+                RESET_PASSWORD_ERROR_FALLBACK,
+            )
+        },
+    )
+
     ipcMain.handle('auth:session-status', async (): Promise<AuthSessionStatus> => {
         const refreshCookies = await session.defaultSession.cookies.get({ name: REFRESH_COOKIE_NAME })
 
@@ -70,6 +113,81 @@ export function registerAuthIpc() {
     ipcMain.handle('auth:logout', async (): Promise<AuthActionResult> => {
         return logout()
     })
+}
+
+function toForgotPasswordRequest(request: unknown): ForgotPasswordRequest | null {
+    try {
+        if (!isRecord(request) || typeof request.email !== 'string') {
+            return null
+        }
+
+        return {
+            email: request.email,
+        }
+    } catch {
+        return null
+    }
+}
+
+function toResetPasswordRequest(request: unknown): ResetPasswordRequest | null {
+    try {
+        if (
+            !isRecord(request) ||
+            typeof request.email !== 'string' ||
+            typeof request.token !== 'string' ||
+            typeof request.password !== 'string'
+        ) {
+            return null
+        }
+
+        return {
+            email: request.email,
+            token: request.token,
+            password: request.password,
+        }
+    } catch {
+        return null
+    }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function recoveryFailure(message: string): PasswordRecoveryResult {
+    return {
+        success: false,
+        message,
+    }
+}
+
+async function postPasswordRecovery(
+    url: string,
+    request: ForgotPasswordRequest | ResetPasswordRequest,
+    successFallback: string,
+    errorFallback: string,
+): Promise<PasswordRecoveryResult> {
+    if (!isUrlConfigured(url)) {
+        return recoveryFailure(errorFallback)
+    }
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request),
+        })
+        const message = await readResponseMessage(response, response.ok ? successFallback : errorFallback)
+
+        return {
+            success: response.ok,
+            message,
+        }
+    } catch {
+        return recoveryFailure(errorFallback)
+    }
 }
 
 async function login(credentials: LoginCredentials): Promise<AuthLoginResult> {
@@ -278,6 +396,15 @@ function isUrlConfigured(url: string) {
 async function readErrorMessage(response: Response, fallback = LOGIN_ERROR_FALLBACK) {
     const error = await readAuthError(response, fallback)
     return error.message
+}
+
+async function readResponseMessage(response: Response, fallback: string) {
+    try {
+        const body = (await response.json()) as { message?: string }
+        return body.message?.trim() || fallback
+    } catch {
+        return fallback
+    }
 }
 
 async function readAuthError(response: Response, fallback: string): Promise<ParsedAuthError> {

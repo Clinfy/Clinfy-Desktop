@@ -1,4 +1,5 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import App from '@/app/App'
@@ -20,6 +21,8 @@ describe('session expiration handling', () => {
       },
       auth: {
         login: vi.fn(),
+        forgotPassword: vi.fn(),
+        resetPassword: vi.fn(),
         logout: vi.fn(),
         getSessionStatus: vi.fn().mockResolvedValue({ hasRefreshToken: true }),
         getSessionContext: vi.fn().mockResolvedValue({
@@ -52,5 +55,47 @@ describe('session expiration handling', () => {
     )
 
     expect(screen.getByText(EXPIRED_MESSAGE)).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveClass('bg-destructive/10')
+  })
+
+  it('navigates from Login to password recovery', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<p>Password recovery page</p>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Forgot your password?' }))
+
+    expect(screen.getByText('Password recovery page')).toBeInTheDocument()
+  })
+
+  it('renders reset success feedback with the non-destructive alert variant', () => {
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/login',
+            state: {
+              message: 'Password reset successfully.',
+              messageVariant: 'success',
+            },
+          },
+        ]}
+      >
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Password reset successfully.')).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveClass('bg-primary/10')
+    expect(screen.getByRole('alert')).not.toHaveClass('bg-destructive/10')
   })
 })
